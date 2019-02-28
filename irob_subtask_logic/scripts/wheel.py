@@ -120,13 +120,13 @@ class example_application:
           v_s = numpy.array([dir[0], dir[2]])
           v_s = v_s / numpy.linalg.norm(v_s)
 
-          steer_angle = numpy.arccos(numpy.clip(numpy.dot(v_h, v_s), -1.0, 1.0))
+          steer_angle = numpy.np.arctan2(v_s[1], v_s[0])
 
 
           gains.ForceOrientation.x = 0.0
-          gains.ForceOrientation.y = numpy.cos(steer_angle)
+          gains.ForceOrientation.y = numpy.cos(steer_angle/2.0)
           gains.ForceOrientation.z = 0.0
-          gains.ForceOrientation.w = numpy.sin(steer_angle)
+          gains.ForceOrientation.w = numpy.sin(steer_angle/2.0)
 
           self.set_gains_pub.publish(gains)
           rate.sleep()
