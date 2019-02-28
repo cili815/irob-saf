@@ -73,7 +73,7 @@ class example_application:
 
         print rospy.get_caller_id(), ' -> press COAG pedal to set straight position'
         self.wait_for_coag()
-        radius = 0.1
+        radius = 0.12
 
         currpos = self.arm.get_current_position()
 
@@ -85,26 +85,26 @@ class example_application:
 
 
 
-        gains.PosStiffNeg.y = -200.0;
-        gains.PosStiffPos.y = -200.0;
-        gains.PosDampingNeg.y = -5.0;
-        gains.PosDampingPos.y = -5.0;
+        gains.PosStiffNeg.y = -400.0;
+        gains.PosStiffPos.y = -400.0;
+        gains.PosDampingNeg.y = -10.0;
+        gains.PosDampingPos.y = -10.0;
 
         gains.PosStiffNeg.z = 0.0;
         gains.PosStiffPos.z = 0.0;
-        gains.PosDampingNeg.z = 5.0;
-        gains.PosDampingPos.z = 5.0;
+        gains.PosDampingNeg.z = 1.0;
+        gains.PosDampingPos.z = 1.0;
 
-        gains.PosStiffNeg.x = -200.0;
-        gains.PosStiffPos.x = -200.0;
-        gains.PosDampingNeg.x = -5.0;
-        gains.PosDampingPos.x = -5.0;
+        gains.PosStiffNeg.x = -400.0;
+        gains.PosStiffPos.x = -400.0;
+        gains.PosDampingNeg.x = -10.0;
+        gains.PosDampingPos.x = -10.0;
 
         gains.ForcePosition.y = self.arm.get_current_position().p[1]
 
-        rate = rospy.Rate(10) # 10hz
+        rate = rospy.Rate(100) # 10hz
         while not rospy.is_shutdown():
-          print rospy.get_caller_id(), ' -> Refresh gains'
+          #print rospy.get_caller_id(), ' -> Refresh gains'
           currpos = self.arm.get_current_position()
           pos = numpy.array([currpos.p[0], currpos.p[1], currpos.p[2]])
           dir = pos - center
@@ -120,7 +120,7 @@ class example_application:
           v_s = numpy.array([dir[0], dir[2]])
           v_s = v_s / numpy.linalg.norm(v_s)
 
-          steer_angle = numpy.np.arctan2(v_s[1], v_s[0])
+          steer_angle = numpy.arctan2(v_s[1], v_s[0])
 
 
           gains.ForceOrientation.x = 0.0
