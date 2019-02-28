@@ -89,6 +89,17 @@ class example_application:
         gains.PosStiffPos.y = -200.0;
         gains.PosDampingNeg.y = -5.0;
         gains.PosDampingPos.y = -5.0;
+
+        gains.PosStiffNeg.z = 0.0;
+        gains.PosStiffPos.z = 0.0;
+        gains.PosDampingNeg.z = 5.0;
+        gains.PosDampingPos.z = 5.0;
+
+        gains.PosStiffNeg.x = -200.0;
+        gains.PosStiffPos.x = -200.0;
+        gains.PosDampingNeg.x = -5.0;
+        gains.PosDampingPos.x = -5.0;
+
         gains.ForcePosition.y = self.arm.get_current_position().p[1]
 
         rate = rospy.Rate(10) # 10hz
@@ -98,25 +109,44 @@ class example_application:
           pos = numpy.array([currpos.p[0], currpos.p[1], currpos.p[2]])
           dir = pos - center
           dir = dir / numpy.linalg.norm(dir)
-          gains.PosStiffNeg.z = -200.0 * dir[2];
-          gains.PosStiffPos.z = -200.0 * dir[2];
-          gains.PosDampingNeg.z = -5.0 * dir[2];
-          gains.PosDampingPos.z = -5.0 * dir[2];
-
-          gains.PosStiffNeg.x = -200.0 * dir[0];
-          gains.PosStiffPos.x = -200.0 * dir[0];
-          gains.PosDampingNeg.x = -5.0 * dir[0];
-          gains.PosDampingPos.x = -5.0 * dir[0];
 
           target = center + (dir * radius)
 
           gains.ForcePosition.x = target[0]
           gains.ForcePosition.z = target[2]
 
+
+          v_h = numpy.array([1.0, 0.0])
+          v_s = numpy.array([dir[0], dir[2]])
+          v_s = v_s / numpy.linalg.norm(v_s)
+
+          steer_angle = numpy.arccos(numpy.clip(numpy.dot(v_h, v_s), -1.0, 1.0))
+
+
+          gains.ForceOrientation.x = 0.0
+          gains.ForceOrientation.y = numpy.cos(steer_angle)
+          gains.ForceOrientation.z = 0.0
+          gains.ForceOrientation.w = numpy.sin(steer_angle)
+
           self.set_gains_pub.publish(gains)
           rate.sleep()
 
 
+        gains.PosStiffNeg.y = 0.0;
+        gains.PosStiffPos.y = 0.0;
+        gains.PosDampingNeg.y = 0.0;
+        gains.PosDampingPos.y = 0.0;
+
+        gains.PosStiffNeg.z = 0.0;
+        gains.PosStiffPos.z = 0.0;
+        gains.PosDampingNeg.z = 0.0;
+        gains.PosDampingPos.z = 0.0;
+
+        gains.PosStiffNeg.x = 0.0;
+        gains.PosStiffPos.x = 0.0;
+        gains.PosDampingNeg.x = 0.0;
+        gains.PosDampingPos.x = 0.0;
+        self.set_gains_pub.publish(gains)
 
 
     # main method
