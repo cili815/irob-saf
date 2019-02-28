@@ -69,26 +69,27 @@ class example_application:
         # set orientation to identity quaternions
         gains.ForceOrientation.w = 1.0
         gains.TorqueOrientation.w = 1.0
+        self.arm.lock_orientation_as_is()
 
         print rospy.get_caller_id(), ' -> press COAG pedal to set straight position'
         self.wait_for_coag()
-        radius = 0.3
+        radius = 0.1
 
         currpos = self.arm.get_current_position()
 
         center = numpy.array([currpos.p[0], currpos.p[1], currpos.p[2]])
-        center = center - numpy.array([0.0, radius, 0.0])
+        center = center - numpy.array([radius,0.0,  0.0])
 
 
 
 
 
 
-        gains.PosStiffNeg.x = -200.0;
-        gains.PosStiffPos.x = -200.0;
-        gains.PosDampingNeg.x = -5.0;
-        gains.PosDampingPos.x = -5.0;
-        gains.ForcePosition.x = self.arm.get_current_position().p[0]
+        gains.PosStiffNeg.y = -200.0;
+        gains.PosStiffPos.y = -200.0;
+        gains.PosDampingNeg.y = -5.0;
+        gains.PosDampingPos.y = -5.0;
+        gains.ForcePosition.y = self.arm.get_current_position().p[1]
 
         rate = rospy.Rate(10) # 10hz
         while not rospy.is_shutdown():
@@ -102,14 +103,14 @@ class example_application:
           gains.PosDampingNeg.z = -5.0 * dir[2];
           gains.PosDampingPos.z = -5.0 * dir[2];
 
-          gains.PosStiffNeg.y = -200.0 * dir[1];
-          gains.PosStiffPos.y = -200.0 * dir[1];
-          gains.PosDampingNeg.y = -5.0 * dir[1];
-          gains.PosDampingPos.y = -5.0 * dir[1];
+          gains.PosStiffNeg.x = -200.0 * dir[0];
+          gains.PosStiffPos.x = -200.0 * dir[0];
+          gains.PosDampingNeg.x = -5.0 * dir[0];
+          gains.PosDampingPos.x = -5.0 * dir[0];
 
           target = center + (dir * radius)
 
-          gains.ForcePosition.y = target[1]
+          gains.ForcePosition.x = target[0]
           gains.ForcePosition.z = target[2]
 
           self.set_gains_pub.publish(gains)
