@@ -34,15 +34,15 @@ class example_application:
 
     # configuration
     def configure(self, robot_name_l, robot_name_r):
-        print rospy.get_caller_id(), ' -> configuring dvrk_arm_test for ', robot_name_l, ' and ' robot_name_r
+        print rospy.get_caller_id(), ' -> configuring dvrk_arm_test'
         self.arm_l = dvrk.mtm(robot_name_l)
         self.arm_r = dvrk.mtm(robot_name_r)
         self.coag_event = threading.Event()
         rospy.Subscriber('/dvrk/footpedals/coag',
                          Joy, self.coag_event_cb)
-        self.set_gains_r_pub = rospy.Publisher(self.arm._arm__full_ros_namespace + '/set_cartesian_impedance_gains',
+        self.set_gains_r_pub = rospy.Publisher(self.arm_r._arm__full_ros_namespace + '/set_cartesian_impedance_gains',
                                              prmCartesianImpedanceGains, latch = True, queue_size = 1)
-        self.set_gains_l_pub = rospy.Publisher(self.arm._arm__full_ros_namespace + '/set_cartesian_impedance_gains',
+        self.set_gains_l_pub = rospy.Publisher(self.arm_l._arm__full_ros_namespace + '/set_cartesian_impedance_gains',
                                                                                   prmCartesianImpedanceGains, latch = True, queue_size = 1)
 
     # homing example
@@ -50,10 +50,10 @@ class example_application:
         print rospy.get_caller_id(), ' -> starting home'
         arm.home()
         # get current joints just to set size
-        goal = numpy.copy(self.arm.get_current_joint_position())
+        goal = numpy.copy(arm.get_current_joint_position())
         # go to zero position
         goal.fill(0)
-        self.arm.move_joint(goal, interpolate = True)
+        arm.move_joint(goal, interpolate = True)
 
     # foot pedal callback
     def coag_event_cb(self, data):
@@ -68,43 +68,65 @@ class example_application:
 
     # tests
     def tests(self):
-        gains = prmCartesianImpedanceGains()
+        gains_l = prmCartesianImpedanceGains()
+        gains_r = prmCartesianImpedanceGains()
         # set orientation to identity quaternions
-        gains.ForceOrientation.w = 1.0
-        gains.TorqueOrientation.w = 1.0
-        self.arm.lock_orientation_as_is()
-
+        gains_l.ForceOrientation.w = 1.0
+        gains_l.TorqueOrientation.w = 1.0
+        gains_r.ForceOrientation.w = 1.0
+        gains_r.TorqueOrientation.w = 1.0
+        self.arm_l.lock_orientation_as_is()
+        self.arm_r.lock_orientation_as_is()
+		
         print rospy.get_caller_id(), ' -> press COAG pedal to set straight position'
         self.wait_for_coag()
         radius = 0.12
 
-        currpos = self.arm.get_current_position()
-
-        center = numpy.array([currpos.p[0], currpos.p[1], currpos.p[2]])
-        center = center - numpy.array([radius,0.0,  0.0])
+        currpos_l = self.arm_l.get_current_position()
+        currpos_r = self.arm_r.get_current_position()
+		
+        center_l = numpy.array([currpos_l.p[0], currpos_l.p[1], currpos_l.p[2]])
+        center_l = center_l + numpy.array([radius,0.0,  0.0])
+        
+        center_r = numpy.array([currpos_r.p[0], currpos_r.p[1], currpos_r.p[2]])
+        center_r = center_r - numpy.array([radius,0.0,  0.0])
 
 
         couple_f = 1.0
 
 
 
-        gains.PosStiffNeg.y = -400.0;
-        gains.PosStiffPos.y = -400.0;
-        gains.PosDampingNeg.y = -10.0;
-        gains.PosDampingPos.y = -10.0;
+        gains_l.PosStiffNeg.y = -400.0;
+        gains_l.PosStiffPos.y = -400.0;
+        gains_l.PosDampingNeg.y = -10.0;
+        gains_l.PosDampingPos.y = -10.0;
 
-        gains.PosStiffNeg.z = 0.0;
-        gains.PosStiffPos.z = 0.0;
-        gains.PosDampingNeg.z = 2.0;
-        gains.PosDampingPos.z = 2.0;
+        gains_l.PosStiffNeg.z = 0.0;
+        gains_l.PosStiffPos.z = 0.0;
+        gains_l.PosDampingNeg.z = 2.0;
+        gains_l.PosDampingPos.z = 2.0;
 
-        gains.PosStiffNeg.x = -400.0;
-        gains.PosStiffPos.x = -400.0;
-        gains.PosDampingNeg.x = -10.0;
-        gains.PosDampingPos.x = -10.0;
+        gains_l.PosStiffNeg.x = -400.0;
+        gains_l.PosStiffPos.x = -400.0;
+        gains_l.PosDampingNeg.x = -10.0;
+        gains_l.PosDampingPos.x = -10.0;
+        
+        gains_r.PosStiffNeg.y = -400.0;
+        gains_r.PosStiffPos.y = -400.0;
+        gains_r.PosDampingNeg.y = -10.0;
+        gains_r.PosDampingPos.y = -10.0;
 
-        gains_l = gains
-        gains_r = gains
+        gains_r.PosStiffNeg.z = 0.0;
+        gains_r.PosStiffPos.z = 0.0;
+        gains_r.PosDampingNeg.z = 2.0;
+        gains_r.PosDampingPos.z = 2.0;
+
+        gains_r.PosStiffNeg.x = -400.0;
+        gains_r.PosStiffPos.x = -400.0;
+        gains_r.PosDampingNeg.x = -10.0;
+        gains_r.PosDampingPos.x = -10.0;
+
+
 
         gains_l.ForcePosition.y = self.arm_l.get_current_position().p[1]
         gains_r.ForcePosition.y = self.arm_r.get_current_position().p[1]
@@ -115,9 +137,10 @@ class example_application:
           currpos_l = self.arm_l.get_current_position()
           currpos_r = self.arm_r.get_current_position()
 
-          steer_angle_l, target_l = self.get_steer_angle(radius, center, currpos_l):
-          steer_angle_r, target_r = self.get_steer_angle(radius, center, currpos_r):
-
+          steer_angle_l, target_l = self.get_steer_angle(radius, center_l, currpos_l)
+          steer_angle_r, target_r = self.get_steer_angle(radius, center_r, currpos_r) 
+          #print 'steer_angle_l', steer_angle_l
+          #print 'steer_angle_r', steer_angle_r
 
           gains_l.ForcePosition.x = target_l[0]
           gains_l.ForcePosition.z = target_l[2]
@@ -141,15 +164,15 @@ class example_application:
           angle_diff = (steer_angle_l-steer_angle_r)-numpy.pi
 
           if angle_diff > 0.0:
-            gains_l.ForceBiasPos.z = couple_f * angle_diff
-            gains_l.ForceBiasNeg.z = couple_f * angle_diff
-            gains_r.ForceBiasPos.z = -couple_f * angle_diff
-            gains_r.ForceBiasNeg.z = -couple_f * angle_diff
-          else:
             gains_l.ForceBiasPos.z = -couple_f * angle_diff
             gains_l.ForceBiasNeg.z = -couple_f * angle_diff
             gains_r.ForceBiasPos.z = couple_f * angle_diff
             gains_r.ForceBiasNeg.z = couple_f * angle_diff
+          else:
+            gains_l.ForceBiasPos.z = couple_f * angle_diff
+            gains_l.ForceBiasNeg.z = couple_f * angle_diff
+            gains_r.ForceBiasPos.z = -couple_f * angle_diff
+            gains_r.ForceBiasNeg.z = -couple_f * angle_diff
 
 
           self.set_gains_l_pub.publish(gains_l)
@@ -159,34 +182,17 @@ class example_application:
           rate.sleep()
 
 
-        gains.PosStiffNeg.y = 0.0;
-        gains.PosStiffPos.y = 0.0;
-        gains.PosDampingNeg.y = 0.0;
-        gains.PosDampingPos.y = 0.0;
-
-        gains.PosStiffNeg.z = 0.0;
-        gains.PosStiffPos.z = 0.0;
-        gains.PosDampingNeg.z = 0.0;
-        gains.PosDampingPos.z = 0.0;
-
-        gains.PosStiffNeg.x = 0.0;
-        gains.PosStiffPos.x = 0.0;
-        gains.PosDampingNeg.x = 0.0;
-        gains.PosDampingPos.x = 0.0;
-        self.set_gains_pub.publish(gains)
-
-
 
     def get_steer_angle(self, radius, center, currpos):
         pos = numpy.array([currpos.p[0], currpos.p[1], currpos.p[2]])
-        dir = pos - center
-        dir = dir / numpy.linalg.norm(dir)
+        direction = pos - center
+        direction = direction / numpy.linalg.norm(direction)
 
-        target = center + (dir * radius)
+        target = center + (direction * radius)
 
 
         v_h = numpy.array([1.0, 0.0])
-        v_s = numpy.array([dir[0], dir[2]])
+        v_s = numpy.array([direction[0], direction[2]])
         v_s = v_s / numpy.linalg.norm(v_s)
 
         steer_angle = numpy.arctan2(v_s[1], v_s[0])
@@ -200,8 +206,8 @@ class example_application:
 
 if __name__ == '__main__':
     try:
-        if (len(sys.argv) != 2):
-            print sys.argv[0], ' requires one argument, i.e. MTML or MTMR'
+        if (len(sys.argv) != 3):
+            print sys.argv[0], ' requires two arguments, i.e. MTML or MTMR'
         else:
             application = example_application()
             application.configure(sys.argv[1], sys.argv[2])

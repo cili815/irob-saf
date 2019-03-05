@@ -92,8 +92,8 @@ class example_application:
 
         gains.PosStiffNeg.z = 0.0;
         gains.PosStiffPos.z = 0.0;
-        gains.PosDampingNeg.z = 1.0;
-        gains.PosDampingPos.z = 1.0;
+        gains.PosDampingNeg.z = 0.0;
+        gains.PosDampingPos.z = 0.0;
 
         gains.PosStiffNeg.x = -400.0;
         gains.PosStiffPos.x = -400.0;
