@@ -80,21 +80,16 @@ class example_application:
 		
         print rospy.get_caller_id(), ' -> press COAG pedal to set straight position'
         self.wait_for_coag()
-        radius = 0.12
+        #radius = 0.12
 
         currpos_l = self.arm_l.get_current_position()
         currpos_r = self.arm_r.get_current_position()
 		
-        center_l = numpy.array([currpos_l.p[0], currpos_l.p[1], currpos_l.p[2]])
-        center_l = center_l + numpy.array([radius,0.0,  0.0])
+        center = numpy.array([(currpos_l.p[0] + currpos_r.p[0]) / 2.0, (currpos_l.p[1] + currpos_r.p[1]) / 2.0, (currpos_l.p[1] + currpos_r.p[2]) / 2.0])
+       
+        radius = numpy.abs(center_l.p[0] - currpos_l.p[0])
         
-        center_r = numpy.array([currpos_r.p[0], currpos_r.p[1], currpos_r.p[2]])
-        center_r = center_r - numpy.array([radius,0.0,  0.0])
-
-
         couple_f = 20.0
-
-
 
         gains_l.PosStiffNeg.y = -400.0;
         gains_l.PosStiffPos.y = -400.0;
@@ -139,8 +134,8 @@ class example_application:
           currpos_l = self.arm_l.get_current_position()
           currpos_r = self.arm_r.get_current_position()
 
-          steer_angle_l, target_l = self.get_steer_angle(radius, center_l, currpos_l)
-          steer_angle_r, target_r = self.get_steer_angle(radius, center_r, currpos_r) 
+          steer_angle_l, target_l = self.get_steer_angle(radius, center, currpos_l)
+          steer_angle_r, target_r = self.get_steer_angle(radius, center, currpos_r) 
           #print 'steer_angle_l', steer_angle_l
           #print 'steer_angle_r', numpy.rad2deg(steer_angle_r)
 
