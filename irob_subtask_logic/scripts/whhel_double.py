@@ -92,7 +92,7 @@ class example_application:
         center_r = center_r - numpy.array([radius,0.0,  0.0])
 
 
-        couple_f = 1.0
+        couple_f = 20.0
 
 
 
@@ -101,10 +101,11 @@ class example_application:
         gains_l.PosDampingNeg.y = -10.0;
         gains_l.PosDampingPos.y = -10.0;
 
-        gains_l.PosStiffNeg.z = 0.0;
-        gains_l.PosStiffPos.z = 0.0;
-        gains_l.PosDampingNeg.z = 2.0;
-        gains_l.PosDampingPos.z = 2.0;
+        # Tangential direction
+        gains_l.PosStiffNeg.z = -1.0;
+        gains_l.PosStiffPos.z = -1.0;
+        gains_l.PosDampingNeg.z = -3.0;
+        gains_l.PosDampingPos.z = -3.0;
 
         gains_l.PosStiffNeg.x = -400.0;
         gains_l.PosStiffPos.x = -400.0;
@@ -113,13 +114,14 @@ class example_application:
         
         gains_r.PosStiffNeg.y = -400.0;
         gains_r.PosStiffPos.y = -400.0;
-        gains_r.PosDampingNeg.y = -10.0;
-        gains_r.PosDampingPos.y = -10.0;
+        gains_r.PosDampingNeg.y = -2.0;
+        gains_r.PosDampingPos.y = -2.0;
 
-        gains_r.PosStiffNeg.z = 0.0;
-        gains_r.PosStiffPos.z = 0.0;
-        gains_r.PosDampingNeg.z = 2.0;
-        gains_r.PosDampingPos.z = 2.0;
+        # Tangential direction
+        gains_r.PosStiffNeg.z = -1.0;
+        gains_r.PosStiffPos.z = -1.0;
+        gains_r.PosDampingNeg.z = -3.0;
+        gains_r.PosDampingPos.z = -3.0;
 
         gains_r.PosStiffNeg.x = -400.0;
         gains_r.PosStiffPos.x = -400.0;
@@ -140,7 +142,7 @@ class example_application:
           steer_angle_l, target_l = self.get_steer_angle(radius, center_l, currpos_l)
           steer_angle_r, target_r = self.get_steer_angle(radius, center_r, currpos_r) 
           #print 'steer_angle_l', steer_angle_l
-          #print 'steer_angle_r', steer_angle_r
+          #print 'steer_angle_r', numpy.rad2deg(steer_angle_r)
 
           gains_l.ForcePosition.x = target_l[0]
           gains_l.ForcePosition.z = target_l[2]
@@ -161,13 +163,24 @@ class example_application:
           gains_r.ForceOrientation.z = 0.0
           gains_r.ForceOrientation.w = numpy.sin(steer_angle_r/2.0)
 
-          angle_diff = (steer_angle_l-steer_angle_r)-numpy.pi
-
+          #angle_diff = (steer_angle_l-steer_angle_r)-numpy.pi
+          steer_angle_l_rel = 0.0
+          if steer_angle_l < 0.0:
+            steer_angle_l_rel = numpy.pi + steer_angle_l
+          else:
+            steer_angle_l_rel = steer_angle_l - numpy.pi
+          steer_angle_r_rel = steer_angle_r
+          
+          angle_diff = (steer_angle_l_rel-steer_angle_r_rel)
+          #print 'angle_diff', numpy.rad2deg(angle_diff)
+          #print 'steer_angle_l_rel', numpy.rad2deg(steer_angle_l_rel)
+          #print 'steer_angle_r_rel', numpy.rad2deg(steer_angle_r_rel)
+          
           if angle_diff > 0.0:
-            gains_l.ForceBiasPos.z = -couple_f * angle_diff
-            gains_l.ForceBiasNeg.z = -couple_f * angle_diff
-            gains_r.ForceBiasPos.z = couple_f * angle_diff
-            gains_r.ForceBiasNeg.z = couple_f * angle_diff
+            gains_l.ForceBiasPos.z = couple_f * angle_diff
+            gains_l.ForceBiasNeg.z = couple_f * angle_diff
+            gains_r.ForceBiasPos.z = -couple_f * angle_diff
+            gains_r.ForceBiasNeg.z = -couple_f * angle_diff
           else:
             gains_l.ForceBiasPos.z = couple_f * angle_diff
             gains_l.ForceBiasNeg.z = couple_f * angle_diff
@@ -196,6 +209,7 @@ class example_application:
         v_s = v_s / numpy.linalg.norm(v_s)
 
         steer_angle = numpy.arctan2(v_s[1], v_s[0])
+        
         return steer_angle, target
 
     # main method
